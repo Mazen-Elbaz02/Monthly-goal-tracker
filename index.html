@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#0f7a4d">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="apple-mobile-web-app-title" content="Habits">
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="apple-touch-icon" href="icons/icon-180.png">
+  <link rel="icon" href="icons/icon-192.png">
+  <link rel="stylesheet" href="styles.css">
+  <title>Habit Tracker</title>
+</head>
+<body>
+  <div id="app">
+    <header class="topbar">
+      <div>
+        <div class="eyebrow" id="todayLabel"></div>
+        <h1 id="pageTitle">Daily</h1>
+      </div>
+      <button id="installHintBtn" class="icon-btn" type="button" aria-label="Installation help">＋</button>
+    </header>
+
+    <main>
+      <section id="view-daily" class="view active">
+        <div class="date-row card">
+          <button id="prevDayBtn" class="small-btn" type="button" aria-label="Previous day">‹</button>
+          <input id="dailyDate" type="date" aria-label="Entry date">
+          <button id="nextDayBtn" class="small-btn" type="button" aria-label="Next day">›</button>
+        </div>
+
+        <div id="dailySummary" class="summary-strip"></div>
+        <div id="dailyHabits" class="stack"></div>
+
+        <button id="saveDayBtn" class="primary-btn sticky-action" type="button">Save day</button>
+      </section>
+
+      <section id="view-dashboard" class="view">
+        <div class="month-switcher card">
+          <button id="prevMonthBtn" class="small-btn" type="button">‹</button>
+          <input id="dashboardMonth" type="month" aria-label="Dashboard month">
+          <button id="nextMonthBtn" class="small-btn" type="button">›</button>
+        </div>
+
+        <div class="card">
+          <div class="section-head">
+            <h2>Monthly goals</h2>
+            <button id="saveMonthNoteBtn" class="text-btn" type="button">Save</button>
+          </div>
+          <textarea id="monthNote" rows="4" placeholder="Write what you want to achieve this month..."></textarea>
+        </div>
+
+        <div id="kpis" class="kpi-grid"></div>
+
+        <div class="card">
+          <div class="section-head">
+            <div>
+              <h2>Month at a glance</h2>
+              <p>Tap a day to edit it.</p>
+            </div>
+          </div>
+          <div id="heatmap" class="heatmap"></div>
+        </div>
+
+        <div class="card">
+          <div class="section-head">
+            <div>
+              <h2>Habit performance</h2>
+              <p>Monthly progress + lifetime streaks.</p>
+            </div>
+          </div>
+          <div id="habitPerformance" class="stack compact"></div>
+        </div>
+      </section>
+
+      <section id="view-habits" class="view">
+        <div class="card">
+          <div class="section-head">
+            <div>
+              <h2 id="habitFormTitle">Add habit</h2>
+              <p>Checkbox or number, with your own goal.</p>
+            </div>
+          </div>
+
+          <form id="habitForm" class="form-grid">
+            <input type="hidden" id="editHabitId">
+
+            <label>
+              <span>Name</span>
+              <input id="habitName" type="text" required maxlength="60" placeholder="e.g. Exercise">
+            </label>
+
+            <label>
+              <span>Type</span>
+              <select id="habitType">
+                <option value="checkbox">Checkbox</option>
+                <option value="number">Number</option>
+              </select>
+            </label>
+
+            <label id="goalTypeWrap">
+              <span>Goal type</span>
+              <select id="habitGoalType"></select>
+            </label>
+
+            <label id="goalValueWrap">
+              <span>Goal</span>
+              <input id="habitGoalValue" type="number" step="0.1" placeholder="e.g. 8">
+            </label>
+
+            <label id="unitWrap">
+              <span>Unit</span>
+              <input id="habitUnit" type="text" maxlength="20" placeholder="hours, kg, pages...">
+            </label>
+
+            <label class="switch-row">
+              <span>
+                <strong>Include in overall score</strong>
+                <small>Tracking-only habits can stay out of completion %.</small>
+              </span>
+              <input id="habitIncludeScore" type="checkbox" checked>
+            </label>
+
+            <div class="form-actions">
+              <button id="cancelEditBtn" class="secondary-btn hidden" type="button">Cancel</button>
+              <button class="primary-btn" type="submit">Save habit</button>
+            </div>
+          </form>
+        </div>
+
+        <div class="section-head standalone">
+          <div>
+            <h2>Your habits</h2>
+            <p>Archive a habit to keep its history but hide it from new entries.</p>
+          </div>
+        </div>
+
+        <div id="habitList" class="stack"></div>
+      </section>
+
+      <section id="view-settings" class="view">
+        <div class="card">
+          <h2>Backup</h2>
+          <p class="muted">Your data lives only on this device. Export a backup regularly.</p>
+          <div class="settings-actions">
+            <button id="exportBtn" class="primary-btn" type="button">Export backup</button>
+            <label class="secondary-btn file-btn">
+              Import backup
+              <input id="importFile" type="file" accept="application/json">
+            </label>
+          </div>
+          <div id="backupStatus" class="muted small"></div>
+        </div>
+
+        <div class="card">
+          <h2>App</h2>
+          <p class="muted">Add this page to your iPhone Home Screen from Safari → Share → Add to Home Screen.</p>
+          <button id="installGuideBtn" class="secondary-btn" type="button">Show install steps</button>
+        </div>
+      </section>
+    </main>
+
+    <nav class="bottom-nav" aria-label="Primary">
+      <button class="nav-btn active" data-view="daily" type="button"><span>✓</span><small>Daily</small></button>
+      <button class="nav-btn" data-view="dashboard" type="button"><span>▦</span><small>Dashboard</small></button>
+      <button class="nav-btn" data-view="habits" type="button"><span>＋</span><small>Habits</small></button>
+      <button class="nav-btn" data-view="settings" type="button"><span>⚙</span><small>Settings</small></button>
+    </nav>
+
+    <div id="toast" class="toast" role="status" aria-live="polite"></div>
+
+    <div id="modalBackdrop" class="modal-backdrop hidden">
+      <div class="modal card" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+        <div class="section-head">
+          <h2 id="modalTitle">Install on iPhone</h2>
+          <button id="closeModalBtn" class="icon-btn" type="button">×</button>
+        </div>
+        <ol class="install-steps">
+          <li>Open this site in <strong>Safari</strong>.</li>
+          <li>Tap the <strong>Share</strong> button.</li>
+          <li>Choose <strong>Add to Home Screen</strong>.</li>
+          <li>Turn on <strong>Open as Web App</strong>, then tap <strong>Add</strong>.</li>
+        </ol>
+      </div>
+    </div>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>
