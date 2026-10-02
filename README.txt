@@ -1,64 +1,49 @@
-HABIT TRACKER MOBILE — FREE LOCAL PWA
+HABIT TRACKER MOBILE V3
 
-WHAT THIS IS
-- Mobile-first habit tracker for iPhone.
-- No Google Sheets.
-- No database service.
-- No paid backend.
-- Data is stored locally in the browser using IndexedDB.
-- Works offline after the first successful load.
-- Continuous streaks can cross month boundaries.
-- Includes Daily, Dashboard, Habits, Monthly Goals, Backup/Restore.
+NEW IN THIS VERSION
+- Fresh installs start with NO habits.
+- Large green + appears when there are no habits.
+- Green + button is always available on Daily.
+- Tap a Daily habit name to open a stats popup with:
+  - current streak
+  - best streak
+  - this-month performance
+  - date added
+  - numeric average when relevant
+- Pencil icon on every Daily habit opens the habit editor.
+- Each habit has a Show on dashboard switch.
+- Only selected habits appear under Dashboard > Habit Performance.
+- Delete forever permanently removes the habit and that habit's saved values from all days.
+- Settings now has accent-color selection and System / Light / Dark theme.
+- The old + installation helper is now an Install App button.
+- Install App controls automatically disappear when the app detects that it is running from the iPhone Home Screen.
+- Existing unused starter habits from V1/V2 are automatically removed only when there are no saved daily entries.
 
-FILES
-- index.html
-- styles.css
-- app.js
-- manifest.webmanifest
-- sw.js
-- icons/
+UPDATE YOUR GITHUB PAGES SITE
+1. Open your habit-tracker GitHub repository.
+2. Replace these files with the V3 files:
+   index.html
+   styles.css
+   app.js
+   manifest.webmanifest
+   sw.js
+   README.txt
+3. Keep/upload these too:
+   apple-touch-icon.png
+   icons/icon-180.png
+   icons/icon-192.png
+   icons/icon-512.png
+4. Commit the changes.
+5. Wait for GitHub Pages to finish deploying.
+6. Open the website in Safari once and refresh it.
+7. Close and reopen the Home Screen app.
+8. If the old version is still cached, remove the Home Screen icon and add the site to Home Screen again.
 
-FREE HOSTING
-Recommended: GitHub Pages.
+DATA SAFETY
+- Updating the website files normally does NOT erase IndexedDB data already saved on the phone.
+- Delete forever inside the app DOES permanently delete that habit and its saved history.
+- Export backups regularly from Settings.
 
-GITHUB PAGES SETUP
-1. Create a free GitHub account if you do not have one.
-2. Create a NEW PUBLIC repository named, for example:
-   habit-tracker
-3. Upload ALL files and folders from this package to the repository root.
-4. Open repository Settings -> Pages.
-5. Under "Build and deployment", choose:
-   Source: Deploy from a branch
-   Branch: main
-   Folder: /(root)
-6. Save.
-7. GitHub will give you a URL similar to:
-   https://YOUR-USERNAME.github.io/habit-tracker/
-
-IPHONE INSTALL
-1. Open the GitHub Pages URL in Safari.
-2. Tap Share.
-3. Tap Add to Home Screen.
-4. Turn on Open as Web App if shown.
-5. Tap Add.
-
-IMPORTANT ABOUT YOUR DATA
-- Your actual habit data is NOT uploaded to GitHub.
-- It stays in IndexedDB on your iPhone.
-- Clearing Safari website data or deleting browser data can erase it.
-- Use Settings -> Export backup regularly.
-- To restore, use Settings -> Import backup.
-
-DEFAULT HABITS
-The app starts with habits based on your old spreadsheet.
-You can edit/archive them or add new ones inside the Habits tab.
-
-STREAK RULE
-- Streaks continue across month boundaries.
-- Missing completed days break the streak.
-- If today has no entry yet, today does not break yesterday's active streak until you record the day.
-- Tracking-only and target-value numeric habits do not currently receive streaks.
-
-NO MONTH CREATION NEEDED
-Months are calendar views, not separate files/tables.
-The Dashboard month selector automatically works for any month.
+INSTALL DETECTION
+- When launched from Safari, Install App is shown.
+- When launched as an iPhone Home Screen web app, Install App is hidden when iOS reports standalone mode.
