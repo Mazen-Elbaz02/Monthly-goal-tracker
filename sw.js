@@ -1,9 +1,9 @@
-const CACHE = "habit-tracker-v3";
+const CACHE = "habit-tracker-v6";
 const ASSETS = [
   "./",
   "./index.html",
-  "./styles.css?v=3",
-  "./app.js?v=3",
+  "./styles.css?v=6",
+  "./app.js?v=6",
   "./manifest.webmanifest",
   "./apple-touch-icon.png",
   "./icons/icon-180.png",
@@ -17,19 +17,34 @@ self.addEventListener("install", event => {
 });
 
 self.addEventListener("activate", event => {
-  event.waitUntil(caches.keys().then(keys => Promise.all(keys.filter(k => k !== CACHE).map(k => caches.delete(k)))));
+  event.waitUntil(
+    caches.keys().then(keys =>
+      Promise.all(keys.filter(k => k !== CACHE).map(k => caches.delete(k)))
+    )
+  );
   self.clients.claim();
 });
 
 self.addEventListener("fetch", event => {
   if (event.request.method !== "GET") return;
+
   event.respondWith(
-    caches.match(event.request).then(cached =>
-      cached || fetch(event.request).then(response => {
+    fetch(event.request)
+      .then(response => {
         const copy = response.clone();
         caches.open(CACHE).then(cache => cache.put(event.request, copy));
         return response;
-      }).catch(() => caches.match("./index.html"))
-    )
+      })
+      .catch(() => caches.match(event.request).then(cached => cached || caches.match("./index.html")))
+  );
+});
+
+self.addEventListener("notificationclick", event => {
+  event.notification.close();
+  event.waitUntil(
+    clients.matchAll({type:"window", includeUncontrolled:true}).then(list => {
+      if (list.length) return list[0].focus();
+      return clients.openWindow("./");
+    })
   );
 });

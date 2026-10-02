@@ -8,10 +8,10 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="default">
   <meta name="apple-mobile-web-app-title" content="Habits">
   <link rel="manifest" href="manifest.webmanifest">
-  <link rel="apple-touch-icon" sizes="180x180" href="./apple-touch-icon.png?v=3">
-  <link rel="apple-touch-icon-precomposed" sizes="180x180" href="./apple-touch-icon.png?v=3">
-  <link rel="icon" href="icons/icon-192.png?v=3">
-  <link rel="stylesheet" href="styles.css?v=3">
+  <link rel="apple-touch-icon" sizes="180x180" href="./apple-touch-icon.png?v=6">
+  <link rel="apple-touch-icon-precomposed" sizes="180x180" href="./apple-touch-icon.png?v=6">
+  <link rel="icon" href="./icons/icon-192.png?v=6">
+  <link rel="stylesheet" href="./styles.css?v=6">
   <title>Habit Tracker</title>
 </head>
 <body>
@@ -21,12 +21,22 @@
         <div class="eyebrow" id="todayLabel"></div>
         <h1 id="pageTitle">Daily</h1>
       </div>
-      <button id="installAppBtn" class="install-btn" type="button">Install App</button>
+      <button id="settingsTopBtn" class="top-settings-btn" type="button" aria-label="Open settings">⚙</button>
     </header>
 
+    <button id="reviewAlert" class="review-alert hidden" type="button">
+      <span class="review-alert-icon">✦</span>
+      <span>
+        <strong id="reviewAlertTitle">Monthly review ready</strong>
+        <small id="reviewAlertText">Take a moment to look back at your month.</small>
+      </span>
+      <span class="review-alert-arrow">›</span>
+    </button>
+
     <main>
+      <!-- Daily habit tracking. This replaces the old separate Habits management page. -->
       <section id="view-daily" class="view active">
-        <div class="date-row card">
+        <div class="date-row glass-card">
           <button id="prevDayBtn" class="small-btn" type="button" aria-label="Previous day">‹</button>
           <input id="dailyDate" type="date" aria-label="Entry date">
           <button id="nextDayBtn" class="small-btn" type="button" aria-label="Next day">›</button>
@@ -34,38 +44,58 @@
 
         <div class="daily-toolbar">
           <div id="dailySummary" class="summary-strip"></div>
-          <button id="addHabitDailyBtn" class="round-add-btn" type="button" aria-label="Add habit">+</button>
+          <button id="dailyAddBtn" class="round-add-btn" type="button" aria-label="Add">+</button>
         </div>
 
-        <div id="dailyHabits" class="stack"></div>
+        <div id="todoSection" class="daily-section hidden">
+          <div class="daily-section-head">
+            <div>
+              <span class="section-kicker">TODAY</span>
+              <h2>To-do</h2>
+            </div>
+            <span id="todoCount" class="mini-count"></span>
+          </div>
+          <div id="dailyTodos" class="stack"></div>
+        </div>
+
+        <div id="habitsSection" class="daily-section hidden">
+          <div class="daily-section-head">
+            <div>
+              <span class="section-kicker">ROUTINE</span>
+              <h2>Habits</h2>
+            </div>
+          </div>
+          <div id="dailyHabits" class="stack"></div>
+        </div>
 
         <div id="dailyEmpty" class="empty-state hidden">
-          <button id="emptyAddBtn" class="giant-add-btn" type="button" aria-label="Add your first habit">+</button>
-          <h2>Add your first habit</h2>
-          <p>Tap the green + to create a checkbox or number habit.</p>
+          <button id="emptyAddBtn" class="giant-add-btn" type="button" aria-label="Add something">+</button>
+          <h2>Start your day</h2>
+          <p>Add a one-day to-do or create your first habit.</p>
         </div>
 
         <button id="saveDayBtn" class="primary-btn sticky-action hidden" type="button">Save day</button>
       </section>
 
       <section id="view-dashboard" class="view">
-        <div class="month-switcher card">
-          <button id="prevMonthBtn" class="small-btn" type="button">‹</button>
+        <div class="month-switcher glass-card">
+          <button id="prevMonthBtn" class="small-btn" type="button" aria-label="Previous month">‹</button>
           <input id="dashboardMonth" type="month" aria-label="Dashboard month">
-          <button id="nextMonthBtn" class="small-btn" type="button">›</button>
-        </div>
-
-        <div class="card">
-          <div class="section-head">
-            <h2>Monthly goals</h2>
-            <button id="saveMonthNoteBtn" class="text-btn" type="button">Save</button>
-          </div>
-          <textarea id="monthNote" rows="4" placeholder="Write what you want to achieve this month..."></textarea>
+          <button id="nextMonthBtn" class="small-btn" type="button" aria-label="Next month">›</button>
         </div>
 
         <div id="kpis" class="kpi-grid"></div>
 
-        <div class="card">
+        <button id="openReviewFromDashboard" class="review-entry-card" type="button">
+          <span class="review-entry-copy">
+            <small>Reflect & remember</small>
+            <strong>Monthly Review</strong>
+            <span>Wins, lessons, quote and big moments</span>
+          </span>
+          <span class="review-entry-arrow">›</span>
+        </button>
+
+        <div class="glass-card">
           <div class="section-head">
             <div>
               <h2>Month at a glance</h2>
@@ -75,7 +105,7 @@
           <div id="heatmap" class="heatmap"></div>
         </div>
 
-        <div class="card" id="habitPerformanceCard">
+        <div class="glass-card" id="habitPerformanceCard">
           <div class="section-head">
             <div>
               <h2>Habit performance</h2>
@@ -83,30 +113,91 @@
             </div>
           </div>
           <div id="habitPerformance" class="stack compact"></div>
-          <div id="dashboardEmpty" class="mini-empty hidden">No habits are selected for the dashboard. Edit a habit and turn on “Show on dashboard”.</div>
+          <div id="dashboardEmpty" class="mini-empty hidden">
+            No habits are selected for the dashboard. Edit a habit and turn on “Show on dashboard”.
+          </div>
         </div>
       </section>
 
-      <section id="view-habits" class="view">
-        <div class="section-head habits-head">
-          <div>
-            <h2>Your habits</h2>
-            <p>Add, edit, or permanently delete habits.</p>
-          </div>
-          <button id="addHabitManageBtn" class="round-add-btn" type="button" aria-label="Add habit">+</button>
+      <section id="view-review" class="view">
+        <div class="month-switcher glass-card">
+          <button id="prevReviewMonthBtn" class="small-btn" type="button" aria-label="Previous month">‹</button>
+          <input id="reviewMonth" type="month" aria-label="Review month">
+          <button id="nextReviewMonthBtn" class="small-btn" type="button" aria-label="Next month">›</button>
         </div>
-        <div id="habitList" class="stack"></div>
-        <div id="habitListEmpty" class="empty-state hidden">
-          <button id="emptyManageAddBtn" class="giant-add-btn" type="button">+</button>
-          <h2>No habits yet</h2>
-          <p>Create your first habit to start tracking.</p>
+
+        <div class="glass-card monthly-goals-card">
+          <div class="section-head">
+            <div>
+              <span class="section-kicker">PLAN</span>
+              <h2>Monthly goals</h2>
+              <p>What do you want this month to be about?</p>
+            </div>
+          </div>
+          <textarea id="reviewMonthGoals" rows="4" placeholder="Write your goals for this month..."></textarea>
+        </div>
+
+        <div class="review-hero">
+          <span class="review-kicker">MONTH IN REVIEW</span>
+          <h2 id="reviewMonthTitle">Your month</h2>
+          <p>Keep the numbers, but also keep the story.</p>
+        </div>
+
+        <div id="reviewSnapshot" class="kpi-grid"></div>
+
+        <div class="glass-card reflection-card">
+          <label>
+            <span class="field-title">Biggest win</span>
+            <textarea id="reviewBiggestWin" rows="3" placeholder="What are you most proud of?"></textarea>
+          </label>
+          <label>
+            <span class="field-title">What worked</span>
+            <textarea id="reviewWorked" rows="3" placeholder="What helped you stay consistent?"></textarea>
+          </label>
+          <label>
+            <span class="field-title">What I want to improve</span>
+            <textarea id="reviewImprove" rows="3" placeholder="What will you change next month?"></textarea>
+          </label>
+          <label>
+            <span class="field-title">Next month focus</span>
+            <textarea id="reviewNextFocus" rows="2" placeholder="One clear focus for next month..."></textarea>
+          </label>
+        </div>
+
+        <div class="quote-card">
+          <div>
+            <span class="quote-mark">“</span>
+            <label for="reviewQuote">Quote of the month</label>
+          </div>
+          <textarea id="reviewQuote" rows="3" placeholder="Write a quote you want to remember this month..."></textarea>
+          <small>This quote is also used by the optional quote reminder.</small>
+        </div>
+
+        <div class="glass-card">
+          <div class="section-head">
+            <div>
+              <h2>Big moments</h2>
+              <p>Up to 6 photos. Keep it simple and visual.</p>
+            </div>
+            <label class="photo-add-btn">
+              +
+              <input id="momentPhotoInput" type="file" accept="image/*" multiple>
+            </label>
+          </div>
+          <div id="momentsGallery" class="moments-grid"></div>
+          <div id="momentsEmpty" class="mini-empty">Add a photo from a moment worth remembering.</div>
+        </div>
+
+        <div class="review-actions">
+          <button id="saveReviewBtn" class="primary-btn" type="button">Save monthly review</button>
+          <button id="markReviewReadBtn" class="secondary-btn" type="button">Mark review as read</button>
         </div>
       </section>
 
       <section id="view-settings" class="view">
-        <div class="card">
+        <div class="glass-card">
           <h2>Appearance</h2>
-          <p class="muted">Choose your app color and theme.</p>
+          <p class="muted">The whole background follows your accent color.</p>
 
           <div class="setting-group">
             <span class="setting-label">Accent color</span>
@@ -114,6 +205,7 @@
               <button type="button" class="color-swatch" data-color="#0f7a4d" style="--swatch:#0f7a4d" aria-label="Green"></button>
               <button type="button" class="color-swatch" data-color="#2563eb" style="--swatch:#2563eb" aria-label="Blue"></button>
               <button type="button" class="color-swatch" data-color="#7c3aed" style="--swatch:#7c3aed" aria-label="Purple"></button>
+              <button type="button" class="color-swatch" data-color="#db2777" style="--swatch:#db2777" aria-label="Pink"></button>
               <button type="button" class="color-swatch" data-color="#dc2626" style="--swatch:#dc2626" aria-label="Red"></button>
               <button type="button" class="color-swatch" data-color="#ea580c" style="--swatch:#ea580c" aria-label="Orange"></button>
               <label class="custom-color" aria-label="Custom color">
@@ -133,35 +225,99 @@
           </div>
         </div>
 
-        <div class="card">
+        <div class="glass-card">
+          <div class="section-head">
+            <div>
+              <h2>Reminders</h2>
+              <p>Daily habits, your quote, and month-end review.</p>
+            </div>
+          </div>
+
+          <div class="notification-note">
+            <strong>iPhone note</strong>
+            <span>This free local-only version can alert you while the app is open and always shows missed reminders inside the app. Reliable notifications while the app is fully closed require Web Push from a server.</span>
+          </div>
+
+          <button id="enableNotificationsBtn" class="secondary-btn full-btn" type="button">Enable notifications</button>
+          <div id="notificationPermissionText" class="muted small"></div>
+
+          <label class="switch-row settings-switch">
+            <span>
+              <strong>Daily goals reminder</strong>
+              <small>Remind me to complete today’s habits.</small>
+            </span>
+            <input id="dailyReminderEnabled" type="checkbox">
+          </label>
+          <label class="time-setting">
+            <span>Time</span>
+            <input id="dailyReminderTime" type="time" value="20:00">
+          </label>
+
+          <label class="switch-row settings-switch">
+            <span>
+              <strong>Random quote reminder</strong>
+              <small>Uses the quote saved in the current monthly review.</small>
+            </span>
+            <input id="quoteReminderEnabled" type="checkbox">
+          </label>
+
+          <label class="switch-row settings-switch">
+            <span>
+              <strong>Month-end review reminder</strong>
+              <small>Remind me on the last day of each month.</small>
+            </span>
+            <input id="monthEndReminderEnabled" type="checkbox" checked>
+          </label>
+          <label class="time-setting">
+            <span>Time</span>
+            <input id="monthEndReminderTime" type="time" value="21:00">
+          </label>
+
+          <button id="testNotificationBtn" class="secondary-btn full-btn" type="button">Send test notification</button>
+        </div>
+
+        <div class="glass-card">
           <h2>Backup</h2>
-          <p class="muted">Your data lives only on this device. Export a backup regularly.</p>
+          <p class="muted">Photos are included, so backups may become larger.</p>
           <div class="settings-actions">
             <button id="exportBtn" class="primary-btn" type="button">Export backup</button>
-            <label class="secondary-btn file-btn">Import backup<input id="importFile" type="file" accept="application/json"></label>
+            <label class="secondary-btn file-btn">
+              Import backup
+              <input id="importFile" type="file" accept="application/json">
+            </label>
           </div>
           <div id="backupStatus" class="muted small"></div>
         </div>
 
-        <div class="card" id="installSettingsCard">
+        <div class="glass-card" id="installSettingsCard">
           <h2>Install app</h2>
-          <p class="muted">Install Habit Tracker on your iPhone Home Screen for the full app experience.</p>
-          <button id="installGuideBtn" class="secondary-btn" type="button">How to install</button>
+          <p class="muted">Install Habit Tracker on your iPhone Home Screen.</p>
+          <button id="installGuideBtn" class="secondary-btn full-btn" type="button">How to install</button>
         </div>
       </section>
     </main>
 
-    <nav class="bottom-nav" aria-label="Primary">
-      <button class="nav-btn active" data-view="daily" type="button"><span>✓</span><small>Daily</small></button>
-      <button class="nav-btn" data-view="dashboard" type="button"><span>▦</span><small>Dashboard</small></button>
-      <button class="nav-btn" data-view="habits" type="button"><span>＋</span><small>Habits</small></button>
-      <button class="nav-btn" data-view="settings" type="button"><span>⚙</span><small>Settings</small></button>
+    <nav class="bottom-dock" aria-label="Primary">
+      <button class="dock-btn dashboard-btn" data-view="dashboard" type="button">
+        <span class="dock-icon">▦</span>
+        <small>Dashboard</small>
+      </button>
+
+      <button class="dock-btn habits-dock active" data-view="daily" type="button">
+        <span class="habits-dock-icon">✓</span>
+        <small>Daily</small>
+      </button>
+
+      <button class="dock-btn review-btn" data-view="review" type="button">
+        <span class="dock-icon">✦</span>
+        <small>Review</small>
+      </button>
     </nav>
 
     <div id="toast" class="toast" role="status" aria-live="polite"></div>
 
     <div id="installModalBackdrop" class="modal-backdrop hidden">
-      <div class="modal card" role="dialog" aria-modal="true" aria-labelledby="installModalTitle">
+      <div class="modal glass-card" role="dialog" aria-modal="true" aria-labelledby="installModalTitle">
         <div class="section-head">
           <h2 id="installModalTitle">Install on iPhone</h2>
           <button id="closeInstallModalBtn" class="icon-btn" type="button">×</button>
@@ -175,10 +331,55 @@
       </div>
     </div>
 
-    <div id="statsModalBackdrop" class="modal-backdrop hidden">
-      <div class="modal card" role="dialog" aria-modal="true" aria-labelledby="statsModalTitle">
+
+    <div id="addChooserBackdrop" class="modal-backdrop hidden">
+      <div class="modal glass-card add-chooser-modal" role="dialog" aria-modal="true" aria-labelledby="addChooserTitle">
         <div class="section-head">
-          <div><h2 id="statsModalTitle">Habit</h2><p id="statsModalGoal" class="muted"></p></div>
+          <div>
+            <h2 id="addChooserTitle">Add</h2>
+            <p class="muted">Choose what you want to add for this day.</p>
+          </div>
+          <button id="closeAddChooserBtn" class="icon-btn" type="button">×</button>
+        </div>
+        <div class="add-choice-grid">
+          <button id="addTodoChoiceBtn" class="add-choice-card" type="button">
+            <span class="add-choice-icon">✓</span>
+            <strong>To-do for this day</strong>
+            <small>Only for the selected date. It disappears forever when completed.</small>
+          </button>
+          <button id="addHabitChoiceBtn" class="add-choice-card" type="button">
+            <span class="add-choice-icon">∞</span>
+            <strong>New habit</strong>
+            <small>Track it daily with goals, streaks and dashboard stats.</small>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <div id="todoEditorBackdrop" class="modal-backdrop hidden">
+      <div class="modal glass-card" role="dialog" aria-modal="true" aria-labelledby="todoEditorTitle">
+        <div class="section-head">
+          <div>
+            <h2 id="todoEditorTitle">Add to-do</h2>
+            <p id="todoEditorDate" class="muted"></p>
+          </div>
+          <button id="closeTodoEditorBtn" class="icon-btn" type="button">×</button>
+        </div>
+        <label>
+          <span class="field-title">To-do item</span>
+          <input id="todoText" type="text" maxlength="100" placeholder="e.g. Call dentist">
+        </label>
+        <button id="saveTodoBtn" class="primary-btn full-btn" type="button">Add to-do</button>
+      </div>
+    </div>
+
+    <div id="statsModalBackdrop" class="modal-backdrop hidden">
+      <div class="modal glass-card" role="dialog" aria-modal="true" aria-labelledby="statsModalTitle">
+        <div class="section-head">
+          <div>
+            <h2 id="statsModalTitle">Habit</h2>
+            <p id="statsModalGoal" class="muted"></p>
+          </div>
           <button id="closeStatsModalBtn" class="icon-btn" type="button">×</button>
         </div>
         <div id="habitStatsBody" class="stats-grid"></div>
@@ -186,7 +387,7 @@
     </div>
 
     <div id="habitEditorBackdrop" class="modal-backdrop hidden">
-      <div class="modal card editor-modal" role="dialog" aria-modal="true" aria-labelledby="habitEditorTitle">
+      <div class="modal glass-card editor-modal" role="dialog" aria-modal="true" aria-labelledby="habitEditorTitle">
         <div class="section-head">
           <h2 id="habitEditorTitle">Add habit</h2>
           <button id="closeHabitEditorBtn" class="icon-btn" type="button">×</button>
@@ -194,19 +395,48 @@
 
         <form id="habitForm" class="form-grid">
           <input type="hidden" id="editHabitId">
-          <label><span>Name</span><input id="habitName" type="text" required maxlength="60" placeholder="e.g. Exercise"></label>
-          <label><span>Type</span><select id="habitType"><option value="checkbox">Checkbox</option><option value="number">Number</option></select></label>
-          <label id="goalTypeWrap"><span>Goal type</span><select id="habitGoalType"></select></label>
-          <label id="goalValueWrap"><span>Goal</span><input id="habitGoalValue" type="number" step="0.1" placeholder="e.g. 8"></label>
-          <label id="unitWrap"><span>Unit</span><input id="habitUnit" type="text" maxlength="20" placeholder="hours, kg, pages..."></label>
+
+          <label>
+            <span>Name</span>
+            <input id="habitName" type="text" required maxlength="60" placeholder="e.g. Exercise">
+          </label>
+
+          <label>
+            <span>Type</span>
+            <select id="habitType">
+              <option value="checkbox">Checkbox</option>
+              <option value="number">Number</option>
+            </select>
+          </label>
+
+          <label id="goalTypeWrap">
+            <span>Goal type</span>
+            <select id="habitGoalType"></select>
+          </label>
+
+          <label id="goalValueWrap">
+            <span>Goal</span>
+            <input id="habitGoalValue" type="number" step="0.1" placeholder="e.g. 8">
+          </label>
+
+          <label id="unitWrap">
+            <span>Unit</span>
+            <input id="habitUnit" type="text" maxlength="20" placeholder="hours, kg, pages...">
+          </label>
 
           <label class="switch-row">
-            <span><strong>Include in overall score</strong><small>Tracking-only habits can stay out of completion %.</small></span>
+            <span>
+              <strong>Include in overall score</strong>
+              <small>Tracking-only habits can stay out of completion %.</small>
+            </span>
             <input id="habitIncludeScore" type="checkbox" checked>
           </label>
 
           <label class="switch-row">
-            <span><strong>Show on dashboard</strong><small>Controls whether this habit appears under Habit Performance.</small></span>
+            <span>
+              <strong>Show on dashboard</strong>
+              <small>Show this habit under Habit Performance.</small>
+            </span>
             <input id="habitShowDashboard" type="checkbox" checked>
           </label>
 
@@ -217,7 +447,23 @@
         </form>
       </div>
     </div>
+
+    <div id="momentCaptionBackdrop" class="modal-backdrop hidden">
+      <div class="modal glass-card" role="dialog" aria-modal="true" aria-labelledby="momentCaptionTitle">
+        <div class="section-head">
+          <h2 id="momentCaptionTitle">Big moment</h2>
+          <button id="closeMomentCaptionBtn" class="icon-btn" type="button">×</button>
+        </div>
+        <img id="momentCaptionPreview" class="moment-preview" alt="Selected moment">
+        <label>
+          <span class="field-title">Caption</span>
+          <input id="momentCaptionText" type="text" maxlength="90" placeholder="What happened here?">
+        </label>
+        <button id="saveMomentCaptionBtn" class="primary-btn full-btn" type="button">Add moment</button>
+      </div>
+    </div>
   </div>
-  <script src="app.js?v=3"></script>
+
+  <script src="./app.js?v=6"></script>
 </body>
 </html>
