@@ -25,9 +25,22 @@
     activeView: "daily",
     themeMode: "system",
     accentColor: "#0f7a4d",
-    pendingMomentImage: null,
+    pendingMomentImages: [],
     reminderTimer: null
   };
+
+  const BUILT_IN_QUOTES = [
+    "Small steps count when you keep taking them.",
+    "Consistency builds what motivation starts.",
+    "Do the next useful thing.",
+    "Progress can be quiet and still be real.",
+    "Make today easy to be proud of.",
+    "Start before you feel completely ready.",
+    "Protect the habits that protect you.",
+    "The goal is not perfection. Keep returning.",
+    "One completed promise can change the direction of a day.",
+    "Keep showing up. Results can catch up later."
+  ];
 
   let db;
   let toastTimer;
@@ -200,6 +213,7 @@
     return null;
   }
 
+
   async function getEntry(key){
     const entry = await getOne(STORES.entries,key);
     return entry || {date:key,values:{}};
@@ -231,7 +245,7 @@
   }
 
   function pageTitleFor(view){
-    return {daily:"Daily",dashboard:"Dashboard",review:"Monthly Review",settings:"Settings"}[view] || "Habit Tracker";
+    return {daily:"Daily",dashboard:"Dashboard",review:"Month",settings:"Settings"}[view] || "Habit Tracker";
   }
 
   function updateTopLabel(){
@@ -286,24 +300,38 @@
     todos.forEach(todo=>{
       const row = document.createElement("div");
       row.className = "todo-item";
+      row.classList.toggle("completed",!!todo.checked);
 
       const check = document.createElement("button");
       check.type = "button";
       check.className = "todo-check";
       check.textContent = "✓";
-      check.setAttribute("aria-label",`Complete ${todo.text}`);
+      check.setAttribute("aria-label",`${todo.checked ? "Mark incomplete" : "Complete"} ${todo.text}`);
       check.addEventListener("click",async()=>{
-        await deleteOne(STORES.todos,todo.id);
-        row.style.opacity = ".35";
-        row.style.transform = "scale(.98)";
-        setTimeout(()=>renderDaily(),120);
+        await putOne(STORES.todos,{
+          ...todo,
+          checked:!todo.checked,
+          updatedAt:new Date().toISOString()
+        });
+        await renderDaily();
       });
 
       const text = document.createElement("div");
       text.className = "todo-text";
       text.textContent = todo.text;
 
-      row.append(check,text);
+      const del = document.createElement("button");
+      del.type = "button";
+      del.className = "todo-delete-btn";
+      del.textContent = "×";
+      del.setAttribute("aria-label",`Delete ${todo.text}`);
+      del.addEventListener("click",async()=>{
+        await deleteOne(STORES.todos,todo.id);
+        await renderDaily();
+        toast("To-do deleted");
+      });
+
+      row.append(check,text,del);
       todosRoot.appendChild(row);
     });
 
@@ -464,8 +492,54 @@
       <div class="kpi"><strong>${stats.perfectDays}</strong><span>Perfect days</span></div>
       <div class="kpi"><strong>${stats.elapsed}/${stats.totalDays}</strong><span>Days elapsed</span></div>`;
 
+    await renderDashboardInspiration(state.dashboardMonth);
     renderHeatmap(stats.heat);
     await renderHabitPerformance(stats.entryMap,stats.elapsed);
+  }
+
+  async function renderDashboardInspiration(month){
+    const card = $("dashboardInspiration");
+    const quoteBox = $("inspirationQuote");
+    const momentBox = $("inspirationMoment");
+    quoteBox.classList.add("hidden");
+    momentBox.classList.add("hidden");
+
+    const review = await getReview(month);
+    const quoteChoices = BUILT_IN_QUOTES.map(text=>({text,source:"A reminder for today"}));
+    if(review.quote && review.quote.trim()){
+      quoteChoices.push({text:review.quote.trim(),source:"Your quote for this month"});
+    }
+
+    const photoChoices = [];
+    for(const moment of (review.moments || [])){
+      const images = Array.isArray(moment.images) && moment.images.length ? moment.images : (moment.image ? [moment.image] : []);
+      for(const image of images){
+        photoChoices.push({image,caption:moment.caption || "A moment worth remembering"});
+      }
+    }
+
+    if(!quoteChoices.length && !photoChoices.length){
+      card.classList.add("hidden");
+      return;
+    }
+
+    const availableTypes = [];
+    if(quoteChoices.length) availableTypes.push("quote");
+    if(photoChoices.length) availableTypes.push("photo");
+    const type = availableTypes[Math.floor(Math.random()*availableTypes.length)];
+    card.classList.remove("hidden");
+
+    if(type==="photo"){
+      const pick = photoChoices[Math.floor(Math.random()*photoChoices.length)];
+      $("inspirationMomentImage").src = pick.image;
+      $("inspirationMomentCaption").textContent = pick.caption;
+      momentBox.classList.remove("hidden");
+    }else{
+      const pick = quoteChoices[Math.floor(Math.random()*quoteChoices.length)];
+      $("inspirationQuoteText").textContent = pick.text;
+      $("inspirationQuoteSource").textContent = pick.source;
+      quoteBox.classList.remove("hidden");
+    }
   }
 
   function renderHeatmap(days){
@@ -672,6 +746,23 @@
     $("unitWrap").classList.toggle("hidden",$("habitType").value!=="number");
   }
 
+  async function clearTodosForSelectedDate(){
+    const todos = (await getAll(STORES.todos)).filter(t=>t.date===state.selectedDate);
+    if(!todos.length) return;
+
+    const ok = window.confirm(
+      `Clear all ${todos.length} to-do${todos.length===1 ? "" : "s"} for ${formatPrettyDate(state.selectedDate)}?`
+    );
+    if(!ok) return;
+
+    for(const todo of todos){
+      await deleteOne(STORES.todos,todo.id);
+    }
+
+    await renderDaily();
+    toast("All to-dos cleared");
+  }
+
   function openAddChooser(){
     $("addChooserBackdrop").classList.remove("hidden");
   }
@@ -701,6 +792,7 @@
       id:uid(),
       date:state.selectedDate,
       text,
+      checked:false,
       createdAt:new Date().toISOString()
     });
 
@@ -874,7 +966,7 @@
       <div class="kpi"><strong>${stats.loggedDays}</strong><span>Logged days</span></div>`;
 
     renderMoments(review);
-    $("markReviewReadBtn").textContent = review.reviewReadAt ? "Review read ✓" : "Mark review as read";
+    $("markReviewReadBtn").textContent = review.reviewReadAt ? "Month read ✓" : "Mark month as read";
   }
 
   function renderMoments(review){
@@ -886,17 +978,23 @@
     moments.forEach(moment=>{
       const card = document.createElement("div");
       card.className = "moment-card";
+      const images = Array.isArray(moment.images) && moment.images.length ? moment.images : (moment.image ? [moment.image] : []);
 
-      const img = document.createElement("img");
-      img.src = moment.image;
-      img.alt = moment.caption || "Big moment";
-      card.appendChild(img);
+      const grid = document.createElement("div");
+      grid.className = `moment-photo-grid count-${Math.max(1,Math.min(images.length,6))}`;
+      images.slice(0,6).forEach((src,index)=>{
+        const img = document.createElement("img");
+        img.src = src;
+        img.alt = moment.caption ? `${moment.caption} — photo ${index+1}` : `Big moment photo ${index+1}`;
+        grid.appendChild(img);
+      });
+      card.appendChild(grid);
 
       const del = document.createElement("button");
       del.type = "button";
       del.className = "moment-delete";
       del.textContent = "×";
-      del.setAttribute("aria-label","Delete photo");
+      del.setAttribute("aria-label","Delete moment");
       del.addEventListener("click",()=>deleteMoment(moment.id));
       card.appendChild(del);
 
@@ -904,7 +1002,6 @@
       caption.className = "moment-caption";
       caption.textContent = moment.caption || "Big moment";
       card.appendChild(caption);
-
       root.appendChild(card);
     });
   }
@@ -942,55 +1039,81 @@
 
   async function handleMomentPhotos(files){
     const review = await getReview(state.reviewMonth);
-    const count = (review.moments || []).length;
-    if(count>=6){
-      toast("Maximum 6 big moments per month");
+    const existingPhotoCount = (review.moments || []).reduce((sum,moment)=>{
+      if(Array.isArray(moment.images) && moment.images.length) return sum + moment.images.length;
+      return sum + (moment.image ? 1 : 0);
+    },0);
+    const remaining = Math.max(0,6-existingPhotoCount);
+
+    if(remaining===0){
+      $("momentPhotoInput").value = "";
+      return toast("Maximum 6 photos per month");
+    }
+
+    const chosen = files.filter(file=>file && file.type && file.type.startsWith("image/")).slice(0,remaining);
+    if(!chosen.length){
+      $("momentPhotoInput").value = "";
       return;
     }
 
-    const file = files[0];
-    if(!file) return;
-
     try{
-      state.pendingMomentImage = await compressImage(file);
-      $("momentCaptionPreview").src = state.pendingMomentImage;
+      const compressed = [];
+      for(const file of chosen) compressed.push(await compressImage(file));
+      state.pendingMomentImages = compressed;
+
+      const preview = $("momentCaptionPreview");
+      preview.innerHTML = "";
+      compressed.forEach((src,index)=>{
+        const img = document.createElement("img");
+        img.src = src;
+        img.alt = `Selected photo ${index+1}`;
+        preview.appendChild(img);
+      });
+
       $("momentCaptionText").value = "";
       $("momentCaptionBackdrop").classList.remove("hidden");
       setTimeout(()=>$("momentCaptionText").focus(),100);
+      if(files.length>remaining) toast(`Only ${remaining} more photo${remaining===1?"":"s"} fit this month`);
     }catch(err){
-      toast(err.message || "Could not add photo");
+      $("momentPhotoInput").value = "";
+      toast(err.message || "Could not add photos");
     }
   }
 
   function closeMomentCaption(){
     $("momentCaptionBackdrop").classList.add("hidden");
-    state.pendingMomentImage = null;
+    state.pendingMomentImages = [];
+    $("momentCaptionPreview").innerHTML = "";
     $("momentPhotoInput").value = "";
   }
 
   async function saveMomentCaption(){
-    if(!state.pendingMomentImage) return;
-
+    if(!state.pendingMomentImages.length) return;
     const review = await getReview(state.reviewMonth);
     review.moments = review.moments || [];
 
-    if(review.moments.length>=6){
+    const existingPhotoCount = review.moments.reduce((sum,moment)=>{
+      if(Array.isArray(moment.images) && moment.images.length) return sum + moment.images.length;
+      return sum + (moment.image ? 1 : 0);
+    },0);
+    const remaining = Math.max(0,6-existingPhotoCount);
+    const images = state.pendingMomentImages.slice(0,remaining);
+    if(!images.length){
       closeMomentCaption();
-      return toast("Maximum 6 big moments per month");
+      return toast("Maximum 6 photos per month");
     }
 
     review.moments.push({
       id:uid(),
-      image:state.pendingMomentImage,
+      images,
       caption:$("momentCaptionText").value.trim(),
       createdAt:new Date().toISOString()
     });
     review.updatedAt = new Date().toISOString();
-
     await putOne(STORES.reviews,review);
     closeMomentCaption();
-    renderReview();
-    toast("Big moment added");
+    await renderReview();
+    toast(images.length>1 ? `${images.length} photos grouped into one moment` : "Big moment added");
   }
 
   async function deleteMoment(momentId){
@@ -1005,7 +1128,7 @@
     const review = await saveReview(false);
     review.reviewReadAt = new Date().toISOString();
     await putOne(STORES.reviews,review);
-    toast("Review marked as read");
+    toast("Month marked as read");
     await renderReview();
     await updateReviewAlert();
     if("clearAppBadge" in navigator){
@@ -1049,7 +1172,7 @@
       return;
     }
 
-    $("reviewAlertTitle").textContent = `${formatMonth(month)} review is ready`;
+    $("reviewAlertTitle").textContent = `${formatMonth(month)} month is ready`;
     $("reviewAlertText").textContent = "Look back at your month, big moments and lessons.";
     alert.dataset.month = month;
     alert.classList.remove("hidden");
@@ -1075,7 +1198,7 @@
     document.documentElement.style.setProperty("--accent-rgb",`${rgb.r},${rgb.g},${rgb.b}`);
 
     const meta = document.querySelector('meta[name="theme-color"]');
-    if(meta) meta.setAttribute("content",effectiveTheme(state.themeMode)==="dark" ? "#0b0e0c" : valid);
+    if(meta) meta.setAttribute("content",effectiveTheme(state.themeMode)==="dark" ? "#0b0e0c" : "#ffffff");
 
     $("customColor").value = valid;
     document.querySelectorAll(".color-swatch").forEach(btn=>{
@@ -1099,7 +1222,7 @@
     $("themeMode").value = mode;
 
     const meta = document.querySelector('meta[name="theme-color"]');
-    if(meta) meta.setAttribute("content",effectiveTheme(mode)==="dark" ? "#0b0e0c" : state.accentColor);
+    if(meta) meta.setAttribute("content",effectiveTheme(mode)==="dark" ? "#0b0e0c" : "#ffffff");
 
     if(save) await setSetting("themeMode",mode);
   }
@@ -1194,6 +1317,7 @@
   }
 
   async function checkReminders(){
+    if(removedTodos && state.activeView==="daily") await renderDaily();
     const today = todayKey();
     const month = monthKey(new Date());
     const nowMin = currentMinutes();
@@ -1231,8 +1355,8 @@
 
     if(monthEndEnabled && isLastDayOfCurrentMonth() && monthEndSent!==month && nowMin>=timeToMinutes(monthEndTime)){
       const sent = await showLocalNotification(
-        "Monthly review ready",
-        `Take a few minutes to read and complete your ${formatMonth(month)} review.`,
+        "Month review ready",
+        `Take a few minutes to read and complete your ${formatMonth(month)} month.`,
         `review-${month}`
       );
       if(sent) await setSetting("monthEndReminderLastSent",month);
@@ -1258,7 +1382,7 @@
 
   async function exportBackup(){
     const data = {
-      version:4,
+      version:5,
       exportedAt:new Date().toISOString(),
       habits:await getAll(STORES.habits),
       entries:await getAll(STORES.entries),
@@ -1366,6 +1490,7 @@
       }
     });
     $("saveDayBtn").addEventListener("click",onSaveDay);
+    $("clearTodosBtn").addEventListener("click",clearTodosForSelectedDate);
     $("dailyAddBtn").addEventListener("click",openAddChooser);
     $("emptyAddBtn").addEventListener("click",openAddChooser);
 
@@ -1484,7 +1609,7 @@
         if(state.themeMode==="system"){
           document.documentElement.dataset.theme = effectiveTheme("system");
           const meta = document.querySelector('meta[name="theme-color"]');
-          if(meta) meta.setAttribute("content",effectiveTheme("system")==="dark" ? "#0b0e0c" : state.accentColor);
+          if(meta) meta.setAttribute("content",effectiveTheme("system")==="dark" ? "#0b0e0c" : "#ffffff");
         }
       };
       if(mq.addEventListener) mq.addEventListener("change",handler);
@@ -1519,7 +1644,7 @@
 
     if("serviceWorker" in navigator){
       window.addEventListener("load",()=>{
-        navigator.serviceWorker.register("./sw.js?v=6").catch(()=>{});
+        navigator.serviceWorker.register("./sw.js?v=8").catch(()=>{});
       });
     }
 

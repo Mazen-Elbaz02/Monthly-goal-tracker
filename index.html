@@ -3,15 +3,15 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-  <meta name="theme-color" content="#0f7a4d">
+  <meta name="theme-color" content="#ffffff">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="default">
   <meta name="apple-mobile-web-app-title" content="Habits">
   <link rel="manifest" href="manifest.webmanifest">
-  <link rel="apple-touch-icon" sizes="180x180" href="./apple-touch-icon.png?v=6">
-  <link rel="apple-touch-icon-precomposed" sizes="180x180" href="./apple-touch-icon.png?v=6">
-  <link rel="icon" href="./icons/icon-192.png?v=6">
-  <link rel="stylesheet" href="./styles.css?v=6">
+  <link rel="apple-touch-icon" sizes="180x180" href="./apple-touch-icon.png?v=8">
+  <link rel="apple-touch-icon-precomposed" sizes="180x180" href="./apple-touch-icon.png?v=8">
+  <link rel="icon" href="./icons/icon-192.png?v=8">
+  <link rel="stylesheet" href="./styles.css?v=8">
   <title>Habit Tracker</title>
 </head>
 <body>
@@ -21,13 +21,17 @@
         <div class="eyebrow" id="todayLabel"></div>
         <h1 id="pageTitle">Daily</h1>
       </div>
-      <button id="settingsTopBtn" class="top-settings-btn" type="button" aria-label="Open settings">⚙</button>
+      <button id="settingsTopBtn" class="top-settings-btn" type="button" aria-label="Open settings">
+        <svg viewBox="0 0 24 24" aria-hidden="true">
+          <path d="M4 7h10M18 7h2M4 17h2M10 17h10M14 4v6M7 14v6"></path>
+        </svg>
+      </button>
     </header>
 
     <button id="reviewAlert" class="review-alert hidden" type="button">
       <span class="review-alert-icon">✦</span>
       <span>
-        <strong id="reviewAlertTitle">Monthly review ready</strong>
+        <strong id="reviewAlertTitle">Month review ready</strong>
         <small id="reviewAlertText">Take a moment to look back at your month.</small>
       </span>
       <span class="review-alert-arrow">›</span>
@@ -53,7 +57,10 @@
               <span class="section-kicker">TODAY</span>
               <h2>To-do</h2>
             </div>
-            <span id="todoCount" class="mini-count"></span>
+            <div class="todo-head-actions">
+              <span id="todoCount" class="mini-count"></span>
+              <button id="clearTodosBtn" class="clear-todos-btn" type="button">Clear all</button>
+            </div>
           </div>
           <div id="dailyTodos" class="stack"></div>
         </div>
@@ -86,11 +93,26 @@
 
         <div id="kpis" class="kpi-grid"></div>
 
+        <div id="dashboardInspiration" class="inspiration-card hidden">
+          <div id="inspirationQuote" class="inspiration-quote hidden">
+            <span class="inspiration-mark">“</span>
+            <p id="inspirationQuoteText"></p>
+            <small id="inspirationQuoteSource">A reminder for today</small>
+          </div>
+          <div id="inspirationMoment" class="inspiration-moment hidden">
+            <img id="inspirationMomentImage" alt="Big moment">
+            <div class="inspiration-photo-copy">
+              <small>BIG MOMENT</small>
+              <strong id="inspirationMomentCaption"></strong>
+            </div>
+          </div>
+        </div>
+
         <button id="openReviewFromDashboard" class="review-entry-card" type="button">
           <span class="review-entry-copy">
             <small>Reflect & remember</small>
-            <strong>Monthly Review</strong>
-            <span>Wins, lessons, quote and big moments</span>
+            <strong>Month</strong>
+            <span>Goals, reflection, quote and big moments</span>
           </span>
           <span class="review-entry-arrow">›</span>
         </button>
@@ -122,7 +144,7 @@
       <section id="view-review" class="view">
         <div class="month-switcher glass-card">
           <button id="prevReviewMonthBtn" class="small-btn" type="button" aria-label="Previous month">‹</button>
-          <input id="reviewMonth" type="month" aria-label="Review month">
+          <input id="reviewMonth" type="month" aria-label="Month">
           <button id="nextReviewMonthBtn" class="small-btn" type="button" aria-label="Next month">›</button>
         </div>
 
@@ -138,7 +160,7 @@
         </div>
 
         <div class="review-hero">
-          <span class="review-kicker">MONTH IN REVIEW</span>
+          <span class="review-kicker">YOUR MONTH</span>
           <h2 id="reviewMonthTitle">Your month</h2>
           <p>Keep the numbers, but also keep the story.</p>
         </div>
@@ -177,7 +199,7 @@
           <div class="section-head">
             <div>
               <h2>Big moments</h2>
-              <p>Up to 6 photos. Keep it simple and visual.</p>
+              <p>Up to 6 photos total. Select several together to save them as one moment.</p>
             </div>
             <label class="photo-add-btn">
               +
@@ -189,15 +211,15 @@
         </div>
 
         <div class="review-actions">
-          <button id="saveReviewBtn" class="primary-btn" type="button">Save monthly review</button>
-          <button id="markReviewReadBtn" class="secondary-btn" type="button">Mark review as read</button>
+          <button id="saveReviewBtn" class="primary-btn" type="button">Save month</button>
+          <button id="markReviewReadBtn" class="secondary-btn" type="button">Mark month as read</button>
         </div>
       </section>
 
       <section id="view-settings" class="view">
         <div class="glass-card">
           <h2>Appearance</h2>
-          <p class="muted">The whole background follows your accent color.</p>
+          <p class="muted">Light mode uses a clean white background. Accent color stays on controls and highlights.</p>
 
           <div class="setting-group">
             <span class="setting-label">Accent color</span>
@@ -263,7 +285,7 @@
 
           <label class="switch-row settings-switch">
             <span>
-              <strong>Month-end review reminder</strong>
+              <strong>Month-end reminder</strong>
               <small>Remind me on the last day of each month.</small>
             </span>
             <input id="monthEndReminderEnabled" type="checkbox" checked>
@@ -310,7 +332,7 @@
 
       <button class="dock-btn review-btn" data-view="review" type="button">
         <span class="dock-icon">✦</span>
-        <small>Review</small>
+        <small>Month</small>
       </button>
     </nav>
 
@@ -454,7 +476,7 @@
           <h2 id="momentCaptionTitle">Big moment</h2>
           <button id="closeMomentCaptionBtn" class="icon-btn" type="button">×</button>
         </div>
-        <img id="momentCaptionPreview" class="moment-preview" alt="Selected moment">
+        <div id="momentCaptionPreview" class="moment-preview-grid" aria-label="Selected photos"></div>
         <label>
           <span class="field-title">Caption</span>
           <input id="momentCaptionText" type="text" maxlength="90" placeholder="What happened here?">
@@ -464,6 +486,6 @@
     </div>
   </div>
 
-  <script src="./app.js?v=6"></script>
+  <script src="./app.js?v=8"></script>
 </body>
 </html>
